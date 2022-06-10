@@ -22,6 +22,38 @@ namespace pos_covid_api.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder, 1L, 1);
 
+            modelBuilder.Entity("pos_covid_api.Models.Agenda", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("Data")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("HorarioId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("PacienteId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("PsicologoId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("StatusAgendamento")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("HorarioId");
+
+                    b.HasIndex("PacienteId");
+
+                    b.HasIndex("PsicologoId");
+
+                    b.ToTable("Agenda", (string)null);
+                });
+
             modelBuilder.Entity("pos_covid_api.Models.Horario", b =>
                 {
                     b.Property<Guid>("Id")
@@ -34,7 +66,7 @@ namespace pos_covid_api.Migrations
                     b.Property<DateTime>("Hora")
                         .HasColumnType("datetime2");
 
-                    b.Property<Guid>("PsicologoId")
+                    b.Property<Guid?>("PsicologoId")
                         .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
@@ -143,13 +175,36 @@ namespace pos_covid_api.Migrations
                     b.ToTable("Usuario", (string)null);
                 });
 
+            modelBuilder.Entity("pos_covid_api.Models.Agenda", b =>
+                {
+                    b.HasOne("pos_covid_api.Models.Horario", "Horario")
+                        .WithMany("Agendamentos")
+                        .HasForeignKey("HorarioId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("pos_covid_api.Models.Paciente", "Paciente")
+                        .WithMany("Agendamentos")
+                        .HasForeignKey("PacienteId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("pos_covid_api.Models.Psicologo", "Psicologo")
+                        .WithMany("Agendamentos")
+                        .HasForeignKey("PsicologoId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Horario");
+
+                    b.Navigation("Paciente");
+
+                    b.Navigation("Psicologo");
+                });
+
             modelBuilder.Entity("pos_covid_api.Models.Horario", b =>
                 {
                     b.HasOne("pos_covid_api.Models.Psicologo", "Psicologo")
                         .WithMany("Horarios")
                         .HasForeignKey("PsicologoId")
-                        .OnDelete(DeleteBehavior.SetNull)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("Psicologo");
                 });
@@ -174,8 +229,20 @@ namespace pos_covid_api.Migrations
                     b.Navigation("Usuario");
                 });
 
+            modelBuilder.Entity("pos_covid_api.Models.Horario", b =>
+                {
+                    b.Navigation("Agendamentos");
+                });
+
+            modelBuilder.Entity("pos_covid_api.Models.Paciente", b =>
+                {
+                    b.Navigation("Agendamentos");
+                });
+
             modelBuilder.Entity("pos_covid_api.Models.Psicologo", b =>
                 {
+                    b.Navigation("Agendamentos");
+
                     b.Navigation("Horarios");
                 });
 

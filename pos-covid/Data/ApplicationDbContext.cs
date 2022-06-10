@@ -15,6 +15,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<Psicologo> Psicologos { get; set; }
     public DbSet<Notificacao> Notificacoes { get; set; }
     public DbSet<Horario> Horarios { get; set; }
+    public DbSet<Agenda> Agendamentos { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -25,5 +26,6 @@ public class ApplicationDbContext : DbContext
         modelBuilder.ApplyConfiguration(new PsicologoMap());
         modelBuilder.ApplyConfiguration(new NotificacaoMap());
         modelBuilder.ApplyConfiguration(new HorarioMap());
+        modelBuilder.ApplyConfiguration(new AgendaMap());
     }
 }

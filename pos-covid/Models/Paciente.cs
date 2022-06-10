@@ -7,4 +7,5 @@ public class Paciente
     public Guid? UsuarioId { get; set; }
 
     public Usuario? Usuario { get; set; }
+    public IEnumerable<Agenda> Agendamentos { get; set; }
 }

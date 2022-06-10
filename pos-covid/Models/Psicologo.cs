@@ -13,4 +13,5 @@ public class Psicologo
 
     public Usuario? Usuario { get; set; }
     public IEnumerable<Horario> Horarios { get; set; }
+    public IEnumerable<Agenda> Agendamentos { get; set; }
 }
