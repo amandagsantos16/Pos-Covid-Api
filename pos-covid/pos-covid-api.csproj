@@ -28,10 +28,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Data\Mapping\" />
+    <Folder Include="Migrations\" />
     <Folder Include="Models\" />
-    <Folder Include="Data\" />
     <Folder Include="Extensions\" />
     <Folder Include="Configuration\" />
+    <Folder Include="Enums\" />
   </ItemGroup>
 
 </Project>
