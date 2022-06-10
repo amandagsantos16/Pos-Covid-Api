@@ -11,11 +11,13 @@ public class ApplicationDbContext : DbContext
     { }
 
     public DbSet<Usuario> Usuarios { get; set; }
+    public DbSet<Paciente> Pacientes { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
 
         modelBuilder.ApplyConfiguration(new UsuarioMap());
+        modelBuilder.ApplyConfiguration(new PacienteMap());
     }
 }
