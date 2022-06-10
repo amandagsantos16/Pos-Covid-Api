@@ -1,4 +1,6 @@
+using System.Security.Cryptography;
 using pos_covid_api.Configuration;
+using pos_covid_api.Funcoes;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Configuration
@@ -17,6 +19,7 @@ if (builder.Environment.IsDevelopment())
 builder.Services.AddIdentityConfiguration(builder.Configuration);
 builder.Services.AddApiConfiguration();
 builder.Services.AddSwaggerConfiguration();
+builder.Services.AddSingleton(new FuncoesSenha(SHA512.Create()));
 
 var app = builder.Build();
 

@@ -8,6 +8,9 @@ using pos_covid_api.Models;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.EntityFrameworkCore;
+using pos_covid_api.Funcoes;
 
 namespace pos_covid_api.Controllers;
 
@@ -16,31 +19,41 @@ public class AuthController : MainController
 {
     private readonly AppSettings _appSettings;
     private readonly ApplicationDbContext _context;
+    private readonly FuncoesSenha _funcoesSenha;
 
-    public AuthController(IOptions<AppSettings> appSettings, ApplicationDbContext context)
+    public AuthController(IOptions<AppSettings> appSettings, ApplicationDbContext context, FuncoesSenha funcoesSenha)
     {
         _appSettings = appSettings.Value;
         _context = context;
+        _funcoesSenha = funcoesSenha;
     }
 
     [HttpPost]
     [Route("nova-conta")]
     public async Task<IActionResult> Registrar(UsuarioRegistro usuarioRegistro)
     {
-        if (ModelState.IsValid == false) return CustomResponse(ModelState);
+        if (ModelState.IsValid == false) 
+            return CustomResponse(ModelState);
 
-        var user = new Usuario
+        var user = await _context.Usuarios.Where(x => usuarioRegistro.Email.Equals(x.Email)).FirstOrDefaultAsync();
+        
+        if (user is not null)
+        {
+            AdicionarErroProcessamento("Usuário já cadastrado.");
+            return CustomResponse();
+        }
+        
+        user = new Usuario
         {
             Id = Guid.NewGuid(),
             Email = usuarioRegistro.Email,
-            Senha = usuarioRegistro.Senha
+            Senha = _funcoesSenha.CriptografarSenha(string.Concat(usuarioRegistro.Senha))
         };
 
         await _context.Usuarios.AddAsync(user);
+        await _context.SaveChangesAsync();
 
-        await GerarJwt(user.Email);
-
-        return CustomResponse();
+        return CustomResponse(await GerarJwt(user.Email));
     }
 
     [HttpPost]
@@ -49,59 +62,48 @@ public class AuthController : MainController
     {
         if (ModelState.IsValid == false) 
             return CustomResponse(ModelState);
+        
+        var usuario = await _context.Usuarios.Where(x => usuarioLogin.Email.Equals(x.Email)).FirstOrDefaultAsync();
 
-        //var result = await _signInManager.PasswordSignInAsync(usuarioLogin.Email, usuarioLogin.Senha,
-        //    false, true);
+        if (usuario is null)
+        {
+            AdicionarErroProcessamento("Usuário ou Senha incorreto.");
+            return CustomResponse();
+        }
 
-        //if (result.Succeeded)
-        //{
-        //    return CustomResponse(await GerarJwt(usuarioLogin.Email));
-        //}
-
-        //if (result.IsLockedOut)
-        //{
-        //    AdicionarErroProcessamento("Usuário temporarimente bloqueado por tentativas inválidas");
-        //    return CustomResponse();
-        //}
-
-        //AdicionarErroProcessamento("Usuário ou Senha incorretos");
-        return CustomResponse();
+        if (!_funcoesSenha.VerificarSenha(usuarioLogin.Senha, usuario.Senha))
+        {
+            AdicionarErroProcessamento("Usuário ou Senha incorreto.");
+            return CustomResponse();
+        }
+        
+        return CustomResponse(await GerarJwt(usuarioLogin.Email));
     }
 
     private async Task<UsuarioRespostaLogin> GerarJwt(string email)
     {
-        //var user = await _userManager.FindByEmailAsync(email);
-        //var claims = await _userManager.GetClaimsAsync(user);
+        var user = await _context.Usuarios.Where(x => email.Equals(x.Email)).FirstOrDefaultAsync();
 
-        //var identityClaims = await ObterClaimsUsuario(claims, user);
-        //var encodedToken = CodificarToken(identityClaims);
+        var ret = ObterClaimsUsuario(user);
+        var encodedToken = CodificarToken(ret.Item1);
 
-        //return ObterRepostaToken(encodedToken, user, claims);
-
-        throw new NotImplementedException();
+        return ObterRepostaToken(encodedToken, user, ret.Item2);
     }
 
-    private async Task<ClaimsIdentity> ObterClaimsUsuario(ICollection<Claim> claims, IdentityUser user)
+    private (ClaimsIdentity, ICollection<Claim>) ObterClaimsUsuario(Usuario user)
     {
-        //var userRoles = await _userManager.GetRolesAsync(user);
+        var claims = new List<Claim>();
+        
+        claims.Add(new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()));
+        claims.Add(new Claim(JwtRegisteredClaimNames.Email, user.Email));
+        claims.Add(new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()));
+        claims.Add(new Claim(JwtRegisteredClaimNames.Nbf, ToUnixEpochDate(DateTime.UtcNow).ToString()));
+        claims.Add(new Claim(JwtRegisteredClaimNames.Iat, ToUnixEpochDate(DateTime.UtcNow).ToString(), ClaimValueTypes.Integer64));
 
-        //claims.Add(new Claim(JwtRegisteredClaimNames.Sub, user.Id));
-        //claims.Add(new Claim(JwtRegisteredClaimNames.Email, user.Email));
-        //claims.Add(new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()));
-        //claims.Add(new Claim(JwtRegisteredClaimNames.Nbf, ToUnixEpochDate(DateTime.UtcNow).ToString()));
-        //claims.Add(new Claim(JwtRegisteredClaimNames.Iat, ToUnixEpochDate(DateTime.UtcNow).ToString(), ClaimValueTypes.Integer64));
+        var identityClaims = new ClaimsIdentity();
+        identityClaims.AddClaims(claims);
 
-        //foreach (var userRole in userRoles)
-        //{
-        //    claims.Add(new Claim("role", userRole));
-        //}
-
-        //var identityClaims = new ClaimsIdentity();
-        //identityClaims.AddClaims(claims);
-
-        //return identityClaims;
-
-        throw new NotImplementedException();
+        return (identityClaims, claims);
     }
 
     private string CodificarToken(ClaimsIdentity identityClaims)
@@ -122,7 +124,7 @@ public class AuthController : MainController
         return tokenHandler.WriteToken(token);
     }
 
-    private UsuarioRespostaLogin ObterRepostaToken(string encodedToken, IdentityUser user, ICollection<Claim> claims)
+    private UsuarioRespostaLogin ObterRepostaToken(string encodedToken, Usuario user, ICollection<Claim> claims)
     {
         var response = new UsuarioRespostaLogin
         {
@@ -130,7 +132,7 @@ public class AuthController : MainController
             ExpiresIn = TimeSpan.FromHours(_appSettings.ExpiracaoHoras).TotalSeconds,
             UsuarioToken = new UsuarioToken
             {
-                Id = user.Id,
+                Id = user.Id.ToString(),
                 Email = user.Email,
                 Claims = claims.Select(c => new UsuarioClaim { Type = c.Type, Value = c.Value })
             }
