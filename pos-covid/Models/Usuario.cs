@@ -7,4 +7,5 @@ public class Usuario
     public string Email { get; set; }
 
     public Paciente? Paciente { get; set; }
+    public Psicologo? Psicologo { get; set; }
 }
