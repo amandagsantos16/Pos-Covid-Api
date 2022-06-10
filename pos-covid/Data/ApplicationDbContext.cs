@@ -12,6 +12,7 @@ public class ApplicationDbContext : DbContext
 
     public DbSet<Usuario> Usuarios { get; set; }
     public DbSet<Paciente> Pacientes { get; set; }
+    public DbSet<Psicologo> Psicologos { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -19,5 +20,6 @@ public class ApplicationDbContext : DbContext
 
         modelBuilder.ApplyConfiguration(new UsuarioMap());
         modelBuilder.ApplyConfiguration(new PacienteMap());
+        modelBuilder.ApplyConfiguration(new PsicologoMap());
     }
 }
