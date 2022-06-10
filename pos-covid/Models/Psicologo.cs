@@ -12,4 +12,5 @@ public class Psicologo
     public bool RegistroValido { get; private set; }
 
     public Usuario? Usuario { get; set; }
+    public IEnumerable<Horario> Horarios { get; set; }
 }

@@ -4,6 +4,7 @@ namespace pos_covid_api.Models;
 
 public class Agenda
 {
+    public Guid Id { get; set; }
     public Guid PsicologoId { get; set; }
     public Guid PacienteId { get; set; }
     public Guid HorarioId { get; set; }

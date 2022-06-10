@@ -8,5 +8,5 @@ public class Horario
     public Guid PsicologoId { get; set; }
 
     public Psicologo? Psicologo { get; set; }
-    public IEnumerable<Agenda> Agendamentos { get; set; }
+    //public IEnumerable<Agenda> Agendamentos { get; set; }
 }
