@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace pos_covid_api.Models;
+namespace pos_covid_api.ViewModels;
 
 public class UsuarioRegistro
 {

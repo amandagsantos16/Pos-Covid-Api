@@ -1,16 +1,15 @@
-﻿using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using pos_covid_api.Data;
 using pos_covid_api.Extensions;
+using pos_covid_api.Funcoes;
 using pos_covid_api.Models;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.EntityFrameworkCore;
-using pos_covid_api.Funcoes;
+using pos_covid_api.ViewModels;
 
 namespace pos_covid_api.Controllers;
 
