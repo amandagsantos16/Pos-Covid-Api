@@ -120,4 +120,17 @@ public class PsicologoController : MainController
         
         return Ok(horarios);
     }
+    
+    
+    
+    [HttpGet]
+    [Route("agendamentos")]
+    public async Task<IActionResult> ListagemDeAgendamentos(Guid? psicologoId)
+    {
+        var agendamentos =
+            await _context.Agendamentos.Where(x => x.PsicologoId == psicologoId && x.Data.Date >= DateTime.Now.Date)
+                .ToListAsync();
+
+        return CustomResponse(agendamentos);
+    }
 }

@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using pos_covid_api.Data;
 using pos_covid_api.Enums;
 using pos_covid_api.Models;
@@ -35,5 +36,16 @@ public class PacienteController : MainController
         await _context.SaveChangesAsync();
 
         return Created("", agendamento);
+    }
+
+    [HttpGet]
+    [Route("agendamentos")]
+    public async Task<IActionResult> ListagemDeAgendamentos(Guid? pacienteId)
+    {
+        var agendamentos =
+            await _context.Agendamentos.Where(x => x.PacienteId == pacienteId && x.Data.Date >= DateTime.Now.Date)
+                .ToListAsync();
+
+        return CustomResponse(agendamentos);
     }
 }
