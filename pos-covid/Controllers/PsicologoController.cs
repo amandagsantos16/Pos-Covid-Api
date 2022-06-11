@@ -46,6 +46,14 @@ public class PsicologoController : MainController
         return Created("", psicologo);
     }
 
+    [HttpGet]
+    public async Task<IActionResult> ObterListagemDePsicologos()
+    {
+        var psicologos = await _context.Psicologos.Where(x => x.RegistroValido).ToListAsync();
+
+        return CustomResponse(psicologos);
+    }
+
     [HttpPost]
     [Route("horarios")]
     public async Task<IActionResult> AdicionarHorarios(AdicionarHorariosPsicologo request)
