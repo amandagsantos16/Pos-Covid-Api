@@ -1,10 +1,16 @@
-﻿namespace pos_covid_api.Configuration;
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
+
+namespace pos_covid_api.Configuration;
 
 public static class ApiConfig
 {
     public static IServiceCollection AddApiConfiguration(this IServiceCollection services)
     {
-        services.AddControllers();
+        services.AddControllers().AddNewtonsoftJson(options => {
+            options.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
+            options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
+        });
 
         return services;
     }

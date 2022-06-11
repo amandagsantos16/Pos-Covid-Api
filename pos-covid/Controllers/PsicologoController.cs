@@ -8,6 +8,7 @@ using pos_covid_api.ViewModels;
 
 namespace pos_covid_api.Controllers;
 
+[Authorize]
 [Route("api/psicologos")]
 public class PsicologoController : MainController
 {
@@ -19,7 +20,6 @@ public class PsicologoController : MainController
     }
 
     [HttpPost]
-    [Authorize]
     public async Task<IActionResult> AdicionarPsicologo(AdicionarPsicologoViewModel request)
     {
         var psicologo = await _context.Psicologos.Where(x => request.Crp.Equals(x.CRP)).FirstOrDefaultAsync();
@@ -47,7 +47,6 @@ public class PsicologoController : MainController
     }
 
     [HttpPost]
-    [Authorize]
     [Route("horarios")]
     public async Task<IActionResult> AdicionarHorarios(AdicionarHorariosPsicologo request)
     {
@@ -74,5 +73,43 @@ public class PsicologoController : MainController
         var retorno = await _context.Horarios.Where(x => x.PsicologoId == request.PsicologoId).ToListAsync();
 
         return Created("", retorno);
+    }
+
+    [HttpGet]
+    [Route("horarios")]
+    public async Task<IActionResult> ObterHorariosDisponiveisPorData([FromQuery] DateTime? data, [FromQuery] Guid? psicologoId)
+    {
+        if (data is null)
+            AdicionarErroProcessamento("Data é obrigatória para a busca de horários.");
+        if (psicologoId is null)
+            AdicionarErroProcessamento("Psicologo é obrigatório para a busca de horários.");
+        if (IsValid == false)
+            return CustomResponse();
+
+        var diaDaSemana = data.Value.DayOfWeek;
+        
+        var horaAgora = DateTime.Now.TimeOfDay;
+
+        var horarios = await _context.Horarios
+            .Where(x => x.PsicologoId == psicologoId && x.DiaDaSemana == (int)diaDaSemana && x.Hora.TimeOfDay >= horaAgora)
+            .Include(s => s.Agendamentos)
+            .OrderBy(x => x.Hora)
+            .ToListAsync();
+
+        var horariosToBeRemoved = new List<Horario>();
+        foreach (var horario in horarios)
+        {
+            if (horario.Agendamentos.Any())
+            {
+                horariosToBeRemoved.Add(horario);
+            }
+        }
+
+        foreach (var horarioBeRemove in horariosToBeRemoved)
+        {
+            horarios.Remove(horarioBeRemove);
+        }
+        
+        return Ok(horarios);
     }
 }
