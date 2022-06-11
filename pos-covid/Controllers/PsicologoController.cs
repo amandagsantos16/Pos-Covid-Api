@@ -120,9 +120,7 @@ public class PsicologoController : MainController
         
         return Ok(horarios);
     }
-    
-    
-    
+
     [HttpGet]
     [Route("agendamentos")]
     public async Task<IActionResult> ListagemDeAgendamentos(Guid? psicologoId)
