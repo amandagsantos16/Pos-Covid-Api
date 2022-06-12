@@ -9,7 +9,7 @@ public class Psicologo
     public string Resumo { get; set; }
     public string Especializacoes { get; set; }
     public Guid? UsuarioId { get; set; }
-    public bool RegistroValido { get; private set; }
+    public bool RegistroValido { get; set; }
 
     public Usuario? Usuario { get; set; }
     public IEnumerable<Horario> Horarios { get; set; }

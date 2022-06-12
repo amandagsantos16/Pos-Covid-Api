@@ -49,7 +49,15 @@ public class AuthController : MainController
             Senha = _funcoesSenha.CriptografarSenha(string.Concat(usuarioRegistro.Senha))
         };
 
+        var paciente = new Paciente()
+        {
+            Id = Guid.NewGuid(),
+            Nome = usuarioRegistro.Nome,
+            UsuarioId = user.Id
+        };
+
         await _context.Usuarios.AddAsync(user);
+        await _context.Pacientes.AddAsync(paciente);
         await _context.SaveChangesAsync();
 
         return CustomResponse(await GerarJwt(user.Email));
@@ -125,6 +133,9 @@ public class AuthController : MainController
 
     private UsuarioRespostaLogin ObterRepostaToken(string encodedToken, Usuario user, ICollection<Claim> claims)
     {
+        var paciente = _context.Pacientes.Where(x => x.UsuarioId == user.Id).FirstOrDefault();
+        var psicologo = _context.Psicologos.Where(x => x.UsuarioId == user.Id).FirstOrDefault();
+        
         var response = new UsuarioRespostaLogin
         {
             AccessToken = encodedToken,
@@ -132,6 +143,8 @@ public class AuthController : MainController
             UsuarioToken = new UsuarioToken
             {
                 Id = user.Id.ToString(),
+                PacienteId = paciente?.Id,
+                PsicologoId = psicologo?.Id,
                 Email = user.Email,
                 Claims = claims.Select(c => new UsuarioClaim { Type = c.Type, Value = c.Value })
             }

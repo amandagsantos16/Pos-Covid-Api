@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using pos_covid_api.Data;
+using pos_covid_api.Enums;
 using pos_covid_api.Models;
 using pos_covid_api.ViewModels;
 
@@ -37,7 +38,8 @@ public class PsicologoController : MainController
             DataNascimento = request.DataNascimento,
             CRP = request.Crp,
             Resumo = request.Resumo,
-            Especializacoes = request.Resumo
+            Especializacoes = request.Resumo,
+            RegistroValido = true
         };
 
         await _context.Psicologos.AddAsync(psicologo);
@@ -47,9 +49,9 @@ public class PsicologoController : MainController
     }
 
     [HttpGet]
-    public async Task<IActionResult> ObterListagemDePsicologos()
+    public async Task<IActionResult> ObterListagemDePsicologos(Guid? usuarioId)
     {
-        var psicologos = await _context.Psicologos.Where(x => x.RegistroValido).ToListAsync();
+        var psicologos = await _context.Psicologos.Where(x => x.RegistroValido && x.UsuarioId != usuarioId).ToListAsync();
 
         return CustomResponse(psicologos);
     }
@@ -126,9 +128,63 @@ public class PsicologoController : MainController
     public async Task<IActionResult> ListagemDeAgendamentos(Guid? psicologoId)
     {
         var agendamentos =
-            await _context.Agendamentos.Where(x => x.PsicologoId == psicologoId && x.Data.Date >= DateTime.Now.Date)
+            await _context.Agendamentos.
+                Where(x => x.PsicologoId == psicologoId && x.Data.Date >= DateTime.Now.Date)
+                .Include(x => x.Psicologo)
+                .Include(x => x.Paciente)
+                .Include(x => x.Horario)
                 .ToListAsync();
 
         return CustomResponse(agendamentos);
+    }
+    
+    [HttpPut]
+    [Route("agendamentos")]
+    public async Task<IActionResult> AlterarAgendamento(AlterarAgendamentoViewModel request)
+    {
+        var agendamento = await _context.Agendamentos.Where(x => x.Id == request.Id).FirstOrDefaultAsync();
+        
+        if (agendamento is null)
+        {
+            AdicionarErroProcessamento("Agendamento não encontrado");
+            return CustomResponse();
+        }
+
+        if (agendamento.StatusAgendamento == EnumStatusAgendamento.Cancelado)
+        {
+            AdicionarErroProcessamento("Agendamento cancelado, não é possível alterar");
+            return CustomResponse();
+        }
+
+        agendamento.Data = request.Data;
+        agendamento.HorarioId = request.HorarioId;
+        agendamento.StatusAgendamento = EnumStatusAgendamento.Pendente;
+        _context.Agendamentos.Update(agendamento);
+
+        return Ok();
+    }
+    
+    [HttpDelete]
+    [Route("agendamentos")]
+    public async Task<IActionResult> ExclusaoAgendamento(Guid? agendamentoId)
+    {
+        var agendamento = await _context.Agendamentos.Where(x => x.Id == agendamentoId).FirstOrDefaultAsync();
+        
+        if (agendamento is null)
+        {
+            AdicionarErroProcessamento("Agendamento não encontrado");
+            return CustomResponse();
+        }
+
+        if (agendamento.StatusAgendamento == EnumStatusAgendamento.Cancelado)
+        {
+            AdicionarErroProcessamento("Agendamento já foi cancelado");
+            return CustomResponse();
+        }
+
+        agendamento.StatusAgendamento = EnumStatusAgendamento.Cancelado;
+        _context.Agendamentos.Update(agendamento);
+
+        return Ok();
     }
 }
