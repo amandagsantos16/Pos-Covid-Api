@@ -6,6 +6,7 @@ using pos_covid_api.Data;
 namespace pos_covid_api.Controllers;
 
 [Authorize]
+[Route("api/notificacoes")]
 public class NotificacaoController : MainController
 {
     private readonly ApplicationDbContext _context;
