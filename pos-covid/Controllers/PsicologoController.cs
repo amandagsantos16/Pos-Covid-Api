@@ -87,7 +87,7 @@ public class PsicologoController : MainController
     }
 
     [HttpGet]
-    [Route("horarios")]
+    [Route("horarios-por-data")]
     public async Task<IActionResult> ObterHorariosDisponiveisPorData([FromQuery] DateTime? data, [FromQuery] Guid? psicologoId)
     {
         if (data is null)
@@ -125,7 +125,7 @@ public class PsicologoController : MainController
     }
     
     [HttpGet]
-    [Route("horarios")]
+    [Route("horarios-por-dia")]
     public async Task<IActionResult> ObterHorariosPorDia([FromQuery] DayOfWeek diaDaSemana, [FromQuery] Guid? psicologoId)
     {
         var horarios = await _context.Horarios
