@@ -7,4 +7,5 @@ public class AdicionarPsicologoViewModel
     public string Crp { get; set; }
     public string Resumo { get; set; }
     public string Especializacoes { get; set; }
+    public Guid? UsuarioId { get; set; }
 }

@@ -23,8 +23,12 @@ public class PacienteController : MainController
     [Route("agendamentos")]
     public async Task<IActionResult> NovoAgendamento(AdicionarAgendamentoViewModel request)
     {
+        var paciente = await _context.Pacientes.Where(x => x.Id == request.PacienteId).FirstOrDefaultAsync();
+        var psicologo = await _context.Psicologos.Where(x => x.Id == request.PsicologoId).FirstOrDefaultAsync();
+        
         var agendamento = new Agenda
         {
+            Id = new Guid(),
             PacienteId = request.PacienteId,
             PsicologoId = request.PsicologoId,
             HorarioId = request.HorarioId,
@@ -32,7 +36,15 @@ public class PacienteController : MainController
             StatusAgendamento = EnumStatusAgendamento.Pendente
         };
 
+        var notificacao = new Notificacao
+        {
+            Id = new Guid(),
+            AgendamentoId = agendamento.Id,
+            Mensagem = $"{paciente.Nome} solicitou atendimento com {psicologo.Nome}"
+        };
+
         await _context.Agendamentos.AddAsync(agendamento);
+        await _context.Notificacoes.AddAsync(notificacao);
         await _context.SaveChangesAsync();
 
         return Created("", agendamento);
@@ -57,6 +69,8 @@ public class PacienteController : MainController
     public async Task<IActionResult> AlterarAgendamento(AlterarAgendamentoViewModel request)
     {
         var agendamento = await _context.Agendamentos.Where(x => x.Id == request.Id).FirstOrDefaultAsync();
+        var paciente = await _context.Pacientes.Where(x => x.Id == agendamento.PacienteId).FirstOrDefaultAsync();
+        var psicologo = await _context.Psicologos.Where(x => x.Id == agendamento.PsicologoId).FirstOrDefaultAsync();
         
         if (agendamento is null)
         {
@@ -69,11 +83,20 @@ public class PacienteController : MainController
             AdicionarErroProcessamento("Agendamento cancelado, não é possível alterar");
             return CustomResponse();
         }
+        
+        var notificacao = new Notificacao
+        {
+            Id = new Guid(),
+            AgendamentoId = agendamento.Id,
+            Mensagem = $"{paciente.Nome} solicitou atendimento com {psicologo.Nome}"
+        };
+        await _context.Notificacoes.AddAsync(notificacao);
 
         agendamento.Data = request.Data;
         agendamento.HorarioId = request.HorarioId;
         agendamento.StatusAgendamento = EnumStatusAgendamento.Pendente;
         _context.Agendamentos.Update(agendamento);
+        await _context.SaveChangesAsync();
 
         return Ok();
     }
@@ -83,6 +106,8 @@ public class PacienteController : MainController
     public async Task<IActionResult> ExclusaoAgendamento(Guid? agendamentoId)
     {
         var agendamento = await _context.Agendamentos.Where(x => x.Id == agendamentoId).FirstOrDefaultAsync();
+        var paciente = await _context.Pacientes.Where(x => x.Id == agendamento.PacienteId).FirstOrDefaultAsync();
+        var psicologo = await _context.Psicologos.Where(x => x.Id == agendamento.PsicologoId).FirstOrDefaultAsync();
         
         if (agendamento is null)
         {
@@ -96,8 +121,17 @@ public class PacienteController : MainController
             return CustomResponse();
         }
 
+        var notificacao = new Notificacao
+        {
+            Id = new Guid(),
+            AgendamentoId = agendamento.Id,
+            Mensagem = $"{paciente.Nome} cancelou o atendimento com {psicologo.Nome}"
+        };
+        await _context.Notificacoes.AddAsync(notificacao);
+
         agendamento.StatusAgendamento = EnumStatusAgendamento.Cancelado;
         _context.Agendamentos.Update(agendamento);
+        await _context.SaveChangesAsync();
 
         return Ok();
     }

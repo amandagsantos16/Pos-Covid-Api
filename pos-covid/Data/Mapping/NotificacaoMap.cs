@@ -10,5 +10,10 @@ public class NotificacaoMap : IEntityTypeConfiguration<Notificacao>
     {
         builder.ToTable("Notificacao");
         builder.HasKey(x => x.Id);
+
+        builder.HasOne(x => x.Agendamento)
+            .WithMany(x => x.Notificacoes)
+            .HasForeignKey(x => x.AgendamentoId)
+            .OnDelete(DeleteBehavior.SetNull);
     }
 }

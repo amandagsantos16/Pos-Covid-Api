@@ -14,4 +14,5 @@ public class Agenda
     public Paciente? Paciente { get; set; }
     public Psicologo? Psicologo { get; set; }
     public Horario? Horario { get; set; }
+    public IEnumerable<Notificacao> Notificacoes { get; set; }
 }

@@ -6,5 +6,5 @@ public class Notificacao
     public string? Mensagem { get; set; }
     public Guid? AgendamentoId { get; set; }
 
-    public Agenda? Agendamento { get; set; }
+    public Agenda? Agendamento { get; set; }    
 }
