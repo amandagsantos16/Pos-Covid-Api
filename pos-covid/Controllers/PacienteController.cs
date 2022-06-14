@@ -167,6 +167,7 @@ public class PacienteController : MainController
         agendamento.StatusAgendamento = EnumStatusAgendamento.Confirmado;
         agendamento.Notificacoes.Add(notificacao);
         _context.Agendamentos.Update(agendamento);
+        await _context.SaveChangesAsync();
 
         return Ok();
     }
