@@ -203,7 +203,7 @@ public class PsicologoController : MainController
 
         agendamento.Data = request.Data;
         agendamento.HorarioId = request.HorarioId;
-        agendamento.StatusAgendamento = EnumStatusAgendamento.Pendente;
+        agendamento.StatusAgendamento = EnumStatusAgendamento.PendentePaciente;
         agendamento.Notificacoes.Add(notificacao);
         _context.Agendamentos.Update(agendamento);
 

@@ -4,5 +4,6 @@ public enum EnumStatusAgendamento
 {
     Pendente = 1,
     Confirmado,
-    Cancelado
+    Cancelado,
+    PendentePaciente
 }

@@ -133,4 +133,37 @@ public class PacienteController : MainController
 
         return Ok();
     }
+    
+    [HttpPost]
+    [Route("agendamentos/confirmacao")]
+    public async Task<IActionResult> ConfirmarAgendamento(Guid? agendamentoId)
+    {
+        var agendamento = await _context.Agendamentos.Where(x => x.Id == agendamentoId).FirstOrDefaultAsync();
+        var paciente = await _context.Pacientes.Where(x => x.Id == agendamento.PacienteId).FirstOrDefaultAsync();
+        var psicologo = await _context.Psicologos.Where(x => x.Id == agendamento.PsicologoId).FirstOrDefaultAsync();
+        
+        if (agendamento is null)
+        {
+            AdicionarErroProcessamento("Agendamento não encontrado");
+            return CustomResponse();
+        }
+
+        if (agendamento.StatusAgendamento == EnumStatusAgendamento.Confirmado)
+        {
+            AdicionarErroProcessamento("Agendamento já foi confirmado");
+            return CustomResponse();
+        }
+        
+        var notificacao = new Notificacao
+        {
+            Id = new Guid(),
+            Mensagem = $"{paciente.Nome} confirmou o atendimento com o psicólogo {psicologo.Nome}"
+        };
+
+        agendamento.StatusAgendamento = EnumStatusAgendamento.Confirmado;
+        agendamento.Notificacoes.Add(notificacao);
+        _context.Agendamentos.Update(agendamento);
+
+        return Ok();
+    }
 }
