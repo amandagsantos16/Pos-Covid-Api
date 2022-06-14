@@ -55,7 +55,8 @@ public class PacienteController : MainController
     public async Task<IActionResult> ListagemDeAgendamentos(Guid? pacienteId)
     {
         var agendamentos =
-            await _context.Agendamentos.Where(x => x.PacienteId == pacienteId && x.Data.Date >= DateTime.Now.Date)
+            await _context.Agendamentos.Where(x => x.PacienteId == pacienteId && x.Data.Date >= DateTime.Now.Date &&
+                                                   x.StatusAgendamento != EnumStatusAgendamento.Cancelado)
                 .Include(x => x.Psicologo)
                 .Include(x => x.Paciente)
                 .Include(x => x.Horario)
@@ -68,7 +69,8 @@ public class PacienteController : MainController
     [Route("agendamentos")]
     public async Task<IActionResult> AlterarAgendamento(AlterarAgendamentoViewModel request)
     {
-        var agendamento = await _context.Agendamentos.Where(x => x.Id == request.Id).FirstOrDefaultAsync();
+        var agendamento = await _context.Agendamentos.Where(x => x.Id == request.Id)
+            .Include(x =>x .Notificacoes).FirstOrDefaultAsync();
         var paciente = await _context.Pacientes.Where(x => x.Id == agendamento.PacienteId).FirstOrDefaultAsync();
         var psicologo = await _context.Psicologos.Where(x => x.Id == agendamento.PsicologoId).FirstOrDefaultAsync();
 
@@ -89,7 +91,7 @@ public class PacienteController : MainController
             Id = new Guid(),
             Mensagem = $"{paciente.Nome} solicitou atendimento com {psicologo.Nome}"
         };
-        
+
         agendamento.Data = request.Data;
         agendamento.HorarioId = request.HorarioId;
         agendamento.StatusAgendamento = EnumStatusAgendamento.Pendente;
@@ -104,7 +106,8 @@ public class PacienteController : MainController
     [Route("agendamentos")]
     public async Task<IActionResult> ExclusaoAgendamento(Guid? agendamentoId)
     {
-        var agendamento = await _context.Agendamentos.Where(x => x.Id == agendamentoId).FirstOrDefaultAsync();
+        var agendamento = await _context.Agendamentos.Where(x => x.Id == agendamentoId)
+            .Include(x => x.Notificacoes).FirstOrDefaultAsync();
         var paciente = await _context.Pacientes.Where(x => x.Id == agendamento.PacienteId).FirstOrDefaultAsync();
         var psicologo = await _context.Psicologos.Where(x => x.Id == agendamento.PsicologoId).FirstOrDefaultAsync();
 
@@ -133,7 +136,7 @@ public class PacienteController : MainController
 
         return Ok();
     }
-    
+
     [HttpPost]
     [Route("agendamentos/confirmacao")]
     public async Task<IActionResult> ConfirmarAgendamento(Guid? agendamentoId)
@@ -141,7 +144,7 @@ public class PacienteController : MainController
         var agendamento = await _context.Agendamentos.Where(x => x.Id == agendamentoId).FirstOrDefaultAsync();
         var paciente = await _context.Pacientes.Where(x => x.Id == agendamento.PacienteId).FirstOrDefaultAsync();
         var psicologo = await _context.Psicologos.Where(x => x.Id == agendamento.PsicologoId).FirstOrDefaultAsync();
-        
+
         if (agendamento is null)
         {
             AdicionarErroProcessamento("Agendamento não encontrado");
@@ -153,7 +156,7 @@ public class PacienteController : MainController
             AdicionarErroProcessamento("Agendamento já foi confirmado");
             return CustomResponse();
         }
-        
+
         var notificacao = new Notificacao
         {
             Id = new Guid(),

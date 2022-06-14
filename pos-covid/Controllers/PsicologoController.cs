@@ -166,7 +166,8 @@ public class PsicologoController : MainController
     {
         var agendamentos =
             await _context.Agendamentos.
-                Where(x => x.PsicologoId == psicologoId && x.Data.Date >= DateTime.Now.Date)
+                Where(x => x.PsicologoId == psicologoId && x.Data.Date >= DateTime.Now.Date && 
+                           x.StatusAgendamento != EnumStatusAgendamento.Cancelado)
                 .Include(x => x.Psicologo)
                 .Include(x => x.Paciente)
                 .Include(x => x.Horario)
@@ -179,7 +180,8 @@ public class PsicologoController : MainController
     [Route("agendamentos")]
     public async Task<IActionResult> AlterarAgendamento(AlterarAgendamentoViewModel request)
     {
-        var agendamento = await _context.Agendamentos.Where(x => x.Id == request.Id).FirstOrDefaultAsync();
+        var agendamento = await _context.Agendamentos.Where(x => x.Id == request.Id)
+            .Include(x => x.Notificacoes).FirstOrDefaultAsync();
         var paciente = await _context.Pacientes.Where(x => x.Id == agendamento.PacienteId).FirstOrDefaultAsync();
         var psicologo = await _context.Psicologos.Where(x => x.Id == agendamento.PsicologoId).FirstOrDefaultAsync();
         
@@ -214,7 +216,8 @@ public class PsicologoController : MainController
     [Route("agendamentos")]
     public async Task<IActionResult> ExclusaoAgendamento(Guid? agendamentoId)
     {
-        var agendamento = await _context.Agendamentos.Where(x => x.Id == agendamentoId).FirstOrDefaultAsync();
+        var agendamento = await _context.Agendamentos.Where(x => x.Id == agendamentoId)
+            .Include(x => x.Notificacoes).FirstOrDefaultAsync();
         var paciente = await _context.Pacientes.Where(x => x.Id == agendamento.PacienteId).FirstOrDefaultAsync();
         var psicologo = await _context.Psicologos.Where(x => x.Id == agendamento.PsicologoId).FirstOrDefaultAsync();
         
