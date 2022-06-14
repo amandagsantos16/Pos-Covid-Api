@@ -4,7 +4,6 @@ namespace pos_covid_api.ViewModels;
 
 public class UsuarioRegistro
 {
-    [EmailAddress(ErrorMessage = "O campo {0} está em formato inválido")]
     public string Email { get; set; }
 
     [StringLength(100, ErrorMessage = "O campo {0} precisa ter entre {2} e {1} caracteres", MinimumLength = 6)]

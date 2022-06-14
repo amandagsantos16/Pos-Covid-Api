@@ -25,7 +25,7 @@ public class PacienteController : MainController
     {
         var paciente = await _context.Pacientes.Where(x => x.Id == request.PacienteId).FirstOrDefaultAsync();
         var psicologo = await _context.Psicologos.Where(x => x.Id == request.PsicologoId).FirstOrDefaultAsync();
-        
+
         var agendamento = new Agenda
         {
             Id = new Guid(),
@@ -33,18 +33,18 @@ public class PacienteController : MainController
             PsicologoId = request.PsicologoId,
             HorarioId = request.HorarioId,
             Data = request.Data,
-            StatusAgendamento = EnumStatusAgendamento.Pendente
-        };
-
-        var notificacao = new Notificacao
-        {
-            Id = new Guid(),
-            AgendamentoId = agendamento.Id,
-            Mensagem = $"{paciente.Nome} solicitou atendimento com {psicologo.Nome}"
+            StatusAgendamento = EnumStatusAgendamento.Pendente,
+            Notificacoes = new List<Notificacao>()
+            {
+                new()
+                {
+                    Id = new Guid(),
+                    Mensagem = $"{paciente.Nome} solicitou atendimento com {psicologo.Nome}"
+                }
+            }
         };
 
         await _context.Agendamentos.AddAsync(agendamento);
-        await _context.Notificacoes.AddAsync(notificacao);
         await _context.SaveChangesAsync();
 
         return Created("", agendamento);
@@ -63,7 +63,7 @@ public class PacienteController : MainController
 
         return CustomResponse(agendamentos);
     }
-    
+
     [HttpPut]
     [Route("agendamentos")]
     public async Task<IActionResult> AlterarAgendamento(AlterarAgendamentoViewModel request)
@@ -71,7 +71,7 @@ public class PacienteController : MainController
         var agendamento = await _context.Agendamentos.Where(x => x.Id == request.Id).FirstOrDefaultAsync();
         var paciente = await _context.Pacientes.Where(x => x.Id == agendamento.PacienteId).FirstOrDefaultAsync();
         var psicologo = await _context.Psicologos.Where(x => x.Id == agendamento.PsicologoId).FirstOrDefaultAsync();
-        
+
         if (agendamento is null)
         {
             AdicionarErroProcessamento("Agendamento não encontrado");
@@ -83,24 +83,23 @@ public class PacienteController : MainController
             AdicionarErroProcessamento("Agendamento cancelado, não é possível alterar");
             return CustomResponse();
         }
-        
+
         var notificacao = new Notificacao
         {
             Id = new Guid(),
-            AgendamentoId = agendamento.Id,
             Mensagem = $"{paciente.Nome} solicitou atendimento com {psicologo.Nome}"
         };
-        await _context.Notificacoes.AddAsync(notificacao);
-
+        
         agendamento.Data = request.Data;
         agendamento.HorarioId = request.HorarioId;
         agendamento.StatusAgendamento = EnumStatusAgendamento.Pendente;
+        agendamento.Notificacoes.Add(notificacao);
         _context.Agendamentos.Update(agendamento);
         await _context.SaveChangesAsync();
 
         return Ok();
     }
-    
+
     [HttpDelete]
     [Route("agendamentos")]
     public async Task<IActionResult> ExclusaoAgendamento(Guid? agendamentoId)
@@ -108,7 +107,7 @@ public class PacienteController : MainController
         var agendamento = await _context.Agendamentos.Where(x => x.Id == agendamentoId).FirstOrDefaultAsync();
         var paciente = await _context.Pacientes.Where(x => x.Id == agendamento.PacienteId).FirstOrDefaultAsync();
         var psicologo = await _context.Psicologos.Where(x => x.Id == agendamento.PsicologoId).FirstOrDefaultAsync();
-        
+
         if (agendamento is null)
         {
             AdicionarErroProcessamento("Agendamento não encontrado");
@@ -124,12 +123,11 @@ public class PacienteController : MainController
         var notificacao = new Notificacao
         {
             Id = new Guid(),
-            AgendamentoId = agendamento.Id,
             Mensagem = $"{paciente.Nome} cancelou o atendimento com {psicologo.Nome}"
         };
-        await _context.Notificacoes.AddAsync(notificacao);
 
         agendamento.StatusAgendamento = EnumStatusAgendamento.Cancelado;
+        agendamento.Notificacoes.Add(notificacao);
         _context.Agendamentos.Update(agendamento);
         await _context.SaveChangesAsync();
 

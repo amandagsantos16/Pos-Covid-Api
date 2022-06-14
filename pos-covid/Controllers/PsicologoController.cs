@@ -193,14 +193,13 @@ public class PsicologoController : MainController
         var notificacao = new Notificacao
         {
             Id = new Guid(),
-            AgendamentoId = agendamento.Id,
             Mensagem = $"{psicologo.Nome} alterou o atendimento com o paciente {paciente.Nome}"
         };
-        await _context.Notificacoes.AddAsync(notificacao);
 
         agendamento.Data = request.Data;
         agendamento.HorarioId = request.HorarioId;
         agendamento.StatusAgendamento = EnumStatusAgendamento.Pendente;
+        agendamento.Notificacoes.Add(notificacao);
         _context.Agendamentos.Update(agendamento);
 
         return Ok();
@@ -229,12 +228,11 @@ public class PsicologoController : MainController
         var notificacao = new Notificacao
         {
             Id = new Guid(),
-            AgendamentoId = agendamento.Id,
             Mensagem = $"{psicologo.Nome} cancelou o atendimento com o paciente {paciente.Nome}"
         };
-        await _context.Notificacoes.AddAsync(notificacao);
 
         agendamento.StatusAgendamento = EnumStatusAgendamento.Cancelado;
+        agendamento.Notificacoes.Add(notificacao);
         _context.Agendamentos.Update(agendamento);
 
         return Ok();
@@ -245,6 +243,8 @@ public class PsicologoController : MainController
     public async Task<IActionResult> ConfirmarAgendamento(Guid? agendamentoId)
     {
         var agendamento = await _context.Agendamentos.Where(x => x.Id == agendamentoId).FirstOrDefaultAsync();
+        var paciente = await _context.Pacientes.Where(x => x.Id == agendamento.PacienteId).FirstOrDefaultAsync();
+        var psicologo = await _context.Psicologos.Where(x => x.Id == agendamento.PsicologoId).FirstOrDefaultAsync();
         
         if (agendamento is null)
         {
@@ -257,8 +257,15 @@ public class PsicologoController : MainController
             AdicionarErroProcessamento("Agendamento já foi confirmado");
             return CustomResponse();
         }
+        
+        var notificacao = new Notificacao
+        {
+            Id = new Guid(),
+            Mensagem = $"{psicologo.Nome} confirmou o atendimento com o paciente {paciente.Nome}"
+        };
 
         agendamento.StatusAgendamento = EnumStatusAgendamento.Confirmado;
+        agendamento.Notificacoes.Add(notificacao);
         _context.Agendamentos.Update(agendamento);
 
         return Ok();
