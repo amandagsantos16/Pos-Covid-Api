@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using pos_covid_api.Data;
+using pos_covid_api.ViewModels;
 
 namespace pos_covid_api.Controllers;
 
@@ -26,7 +27,14 @@ public class NotificacaoController : MainController
             join psicologo in _context.Psicologos on agendamento.PsicologoId equals psicologo.Id into psicologos
             from psicologo in psicologos.DefaultIfEmpty()
             where psicologo.UsuarioId == usuarioId || paciente.UsuarioId == usuarioId
-            select notificacao;
+            select new NotificacaoViewModel
+            {
+                Id = notificacao.Id,
+                Mensagem = notificacao.Mensagem,
+                AgendamentoId = notificacao.AgendamentoId,
+                PacienteId = paciente.Id,
+                PsicologoId = psicologo.Id
+            };
         
         return Ok(await query.ToListAsync());
     }
