@@ -140,25 +140,6 @@ public class PsicologoController : MainController
         
         return Ok(horarios);
     }
-    
-    // [HttpPut]
-    // [Route("horarios")]
-    // public async Task<IActionResult> AlterarHorarioPorDia(AlterarHorarioPsicologo request)
-    // {
-    //     foreach (var hora in request.Horarios)
-    //     {
-    //         var horaFormatada = DateTime.ParseExact(hora, "HH:mm", CultureInfo.CreateSpecificCulture("pt-BR"));
-    //         var horario = await _context.Horarios.Where(x =>
-    //             x.Hora.TimeOfDay == horaFormatada.TimeOfDay && x.PsicologoId == request.PsicologoId).FirstOrDefaultAsync();
-    //
-    //         if (horario is not null)
-    //         {
-    //             horario.Hora = horaFormatada;
-    //         }
-    //     }
-    //     
-    //     return Ok(horarios);
-    // }
 
     [HttpGet]
     [Route("agendamentos")]
@@ -208,6 +189,7 @@ public class PsicologoController : MainController
         agendamento.StatusAgendamento = EnumStatusAgendamento.PendentePaciente;
         agendamento.Notificacoes.Add(notificacao);
         _context.Agendamentos.Update(agendamento);
+        await _context.SaveChangesAsync();
 
         return Ok();
     }
@@ -242,6 +224,7 @@ public class PsicologoController : MainController
         agendamento.StatusAgendamento = EnumStatusAgendamento.Cancelado;
         agendamento.Notificacoes.Add(notificacao);
         _context.Agendamentos.Update(agendamento);
+        await _context.SaveChangesAsync();
 
         return Ok();
     }
@@ -250,7 +233,8 @@ public class PsicologoController : MainController
     [Route("agendamentos/confirmacao")]
     public async Task<IActionResult> ConfirmarAgendamento(Guid? agendamentoId)
     {
-        var agendamento = await _context.Agendamentos.Where(x => x.Id == agendamentoId).FirstOrDefaultAsync();
+        var agendamento = await _context.Agendamentos.Where(x => x.Id == agendamentoId)
+            .Include(x => x.Notificacoes).FirstOrDefaultAsync();
         var paciente = await _context.Pacientes.Where(x => x.Id == agendamento.PacienteId).FirstOrDefaultAsync();
         var psicologo = await _context.Psicologos.Where(x => x.Id == agendamento.PsicologoId).FirstOrDefaultAsync();
         

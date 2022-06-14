@@ -141,7 +141,8 @@ public class PacienteController : MainController
     [Route("agendamentos/confirmacao")]
     public async Task<IActionResult> ConfirmarAgendamento(Guid? agendamentoId)
     {
-        var agendamento = await _context.Agendamentos.Where(x => x.Id == agendamentoId).FirstOrDefaultAsync();
+        var agendamento = await _context.Agendamentos.Where(x => x.Id == agendamentoId)
+            .Include(x => x.Notificacoes).FirstOrDefaultAsync();
         var paciente = await _context.Pacientes.Where(x => x.Id == agendamento.PacienteId).FirstOrDefaultAsync();
         var psicologo = await _context.Psicologos.Where(x => x.Id == agendamento.PsicologoId).FirstOrDefaultAsync();
 
