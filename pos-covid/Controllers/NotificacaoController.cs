@@ -24,7 +24,7 @@ public class NotificacaoController : MainController
             join paciente in _context.Pacientes on agendamento.PacienteId equals paciente.Id into pacientes
             from paciente in pacientes.DefaultIfEmpty()
             join psicologo in _context.Psicologos on agendamento.PsicologoId equals psicologo.Id into psicologos
-            from psicologo in pacientes.DefaultIfEmpty()
+            from psicologo in psicologos.DefaultIfEmpty()
             where psicologo.UsuarioId == usuarioId || paciente.UsuarioId == usuarioId
             select notificacao;
         

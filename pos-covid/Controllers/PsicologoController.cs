@@ -102,10 +102,15 @@ public class PsicologoController : MainController
         var horaAgora = DateTime.Now.TimeOfDay;
 
         var horarios = await _context.Horarios
-            .Where(x => x.PsicologoId == psicologoId && x.DiaDaSemana == (int)diaDaSemana && x.Hora.TimeOfDay >= horaAgora)
+            .Where(x => x.PsicologoId == psicologoId && x.DiaDaSemana == (int)diaDaSemana)
             .Include(s => s.Agendamentos.Where(x => x.StatusAgendamento != EnumStatusAgendamento.Cancelado))
             .OrderBy(x => x.Hora)
             .ToListAsync();
+
+        if (data.Value.Date == DateTime.Now.Date)
+        {
+            horarios = horarios.Where(x => x.Hora.TimeOfDay >= horaAgora).ToList();
+        }
 
         var horariosToBeRemoved = new List<Horario>();
         foreach (var horario in horarios)
